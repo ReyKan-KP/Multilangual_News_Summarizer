@@ -24,7 +24,7 @@ A Next.js application that summarizes news articles in multiple languages using 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/multilingual-news-summarizer.git
+git clone https://github.com/ReyKan-KP/multilingual-news-summarizer.git
 cd multilingual-news-summarizer
 ```
 
