@@ -24,6 +24,47 @@ export default function Home() {
   const [showToolCalls, setShowToolCalls] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("query");
+  const [sutraApiKey, setSutraApiKey] = useState("");
+  const [serpApiKey, setSerpApiKey] = useState("");
+
+  // Load API keys from localStorage on component mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedSutraKey = localStorage.getItem('sutraApiKey');
+      const savedSerpKey = localStorage.getItem('serpApiKey');
+      
+      if (savedSutraKey) setSutraApiKey(savedSutraKey);
+      if (savedSerpKey) setSerpApiKey(savedSerpKey);
+    }
+  }, []);
+  
+  // Save API keys to localStorage when they change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && sutraApiKey) {
+      localStorage.setItem('sutraApiKey', sutraApiKey);
+    }
+  }, [sutraApiKey]);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined' && serpApiKey) {
+      localStorage.setItem('serpApiKey', serpApiKey);
+    }
+  }, [serpApiKey]);
+  
+  // Clear API keys
+  const clearApiKey = (type: 'sutra' | 'serp') => {
+    if (type === 'sutra') {
+      setSutraApiKey('');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sutraApiKey');
+      }
+    } else {
+      setSerpApiKey('');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('serpApiKey');
+      }
+    }
+  };
 
   // Sample questions for news summarization
   const SAMPLE_QUESTIONS = [
@@ -107,7 +148,10 @@ export default function Home() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ query: queryText }),
+          body: JSON.stringify({ 
+            query: queryText,
+            apiKey: serpApiKey || undefined
+          }),
         });
         
         if (searchResponse.ok) {
@@ -149,7 +193,8 @@ export default function Home() {
       },
       body: JSON.stringify({ 
         query: enhancedQuery,
-        showToolCalls
+        showToolCalls,
+        apiKey: sutraApiKey || undefined
       }),
     });
 
@@ -270,12 +315,27 @@ export default function Home() {
           <div>
             <h1 className="text-2xl font-bold">Indian Multilingual News Summarizer</h1>
             <p className="text-muted-foreground">Get news in 50+ languages</p>
+            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mt-1 items-center">
+              <div className="flex items-center gap-1">
+                <span className={`inline-block w-2 h-2 ${sutraApiKey ? "bg-green-500" : "bg-red-500"} rounded-full`}></span>
+                <span>Sutra API</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className={`inline-block w-2 h-2 ${serpApiKey ? "bg-green-500" : "bg-red-500"} rounded-full`}></span>
+                <span>SerpAPI</span>
+              </div>
+              {(!sutraApiKey || !serpApiKey) && (
+                <Button variant="link" size="sm" className="text-xs p-0 h-auto text-blue-500" onClick={() => document.getElementById('settings-trigger')?.click()}>
+                  Set API Keys
+                </Button>
+              )}
+            </div>
           </div>
         </div>
         
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button id="settings-trigger" variant="outline" size="icon">
               <Settings className="h-4 w-4" />
             </Button>
           </SheetTrigger>
@@ -302,17 +362,70 @@ export default function Home() {
               </div>
               <Separator />
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="showToolCalls">Show tool calls</Label>
-                  <Switch
-                    id="showToolCalls"
-                    checked={showToolCalls}
-                    onCheckedChange={setShowToolCalls}
-                  />
+                <h3 className="text-sm font-medium">API Keys</h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="sutraApiKey">Sutra API Key</Label>
+                      {sutraApiKey && <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Set</Badge>}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        id="sutraApiKey"
+                        type="password"
+                        className="w-full px-3 py-2 border rounded-md text-sm"
+                        value={sutraApiKey}
+                        onChange={(e) => setSutraApiKey(e.target.value)}
+                        placeholder="Enter your Sutra API key"
+                      />
+                      {sutraApiKey && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => clearApiKey('sutra')}
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      <a href="https://www.two.ai/sutra/api" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                        Get your API key from Two AI Sutra
+                      </a>
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="serpApiKey">SerpAPI Key</Label>
+                      {serpApiKey && <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Set</Badge>}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        id="serpApiKey"
+                        type="password"
+                        className="w-full px-3 py-2 border rounded-md text-sm"
+                        value={serpApiKey}
+                        onChange={(e) => setSerpApiKey(e.target.value)}
+                        placeholder="Enter your SerpAPI key"
+                      />
+                      {serpApiKey && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => clearApiKey('serp')}
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      <a href="https://serpapi.com/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                        Get your SerpAPI key
+                      </a>
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Display the tools used by AI to generate the summary
-                </p>
               </div>
               <Separator />
               <div className="space-y-2">
@@ -345,6 +458,42 @@ export default function Home() {
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
+              {!sutraApiKey && (
+                <Alert className="mb-4 border-blue-200 bg-blue-50">
+                  <AlertCircle className="h-4 w-4 text-blue-500" />
+                  <AlertTitle className="text-blue-700">Sutra API Key Required</AlertTitle>
+                  <AlertDescription className="text-blue-600">
+                    Please set your Sutra API key in the settings to use the application.{" "}
+                    <a 
+                      href="https://www.two.ai/sutra/api" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 font-medium hover:underline"
+                    >
+                      Get your API key
+                    </a>
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {useSearch && !serpApiKey && (
+                <Alert className="mb-4 border-yellow-200 bg-yellow-50">
+                  <AlertCircle className="h-4 w-4 text-yellow-500" />
+                  <AlertTitle className="text-yellow-700">SerpAPI Key Required for Search</AlertTitle>
+                  <AlertDescription className="text-yellow-600">
+                    You have search enabled but no SerpAPI key. Please add your key in settings or disable search.{" "}
+                    <a 
+                      href="https://serpapi.com/" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-yellow-600 font-medium hover:underline"
+                    >
+                      Get your API key
+                    </a>
+                  </AlertDescription>
                 </Alert>
               )}
               

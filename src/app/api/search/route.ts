@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
 
 // Function to search using SerpApi for news results
-async function searchWithSerpApi(query: string, numResults: number = 5): Promise<any[]> {
+async function searchWithSerpApi(query: string, apiKey?: string, numResults: number = 5): Promise<any[]> {
   try {
-    const apiKey = process.env.SERP_API_KEY;
+    const key = apiKey;
     
-    if (!apiKey) {
-      console.error('SERPAPI_KEY environment variable is not set');
-      throw new Error('Search API configuration error');
+    if (!key) {
+      console.error('No SERPAPI_KEY provided');
+      throw new Error('Search API key required');
     }
     
     // Append "news" to the query to focus on news results
     const newsQuery = `${query} news recent`;
     
     // Call SerpApi Google News search
-    const response = await fetch(`https://serpapi.com/search.json?q=${encodeURIComponent(newsQuery)}&tbm=nws&api_key=${apiKey}&num=${numResults}`);
+    const response = await fetch(`https://serpapi.com/search.json?q=${encodeURIComponent(newsQuery)}&tbm=nws&api_key=${key}&num=${numResults}`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch from SerpApi');
@@ -58,7 +58,7 @@ async function searchWithSerpApi(query: string, numResults: number = 5): Promise
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { query } = body;
+    const { query, apiKey } = body;
     
     if (!query) {
       return NextResponse.json(
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       );
     }
     
-    const results = await searchWithSerpApi(query);
+    const results = await searchWithSerpApi(query, apiKey);
     
     return NextResponse.json(results);
   } catch (error) {

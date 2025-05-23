@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server';
 
 // Function to generate a summary using the Sutra API
-async function generateSummary(query: string): Promise<string> {
+async function generateSummary(query: string, apiKey?: string): Promise<string> {
   try {
-    const apiKey = process.env.SUTRA_API_KEY;
+    const key = apiKey;
     
-    if (!apiKey) {
-      throw new Error('SUTRA API key not found in environment variables');
+    if (!key) {
+      throw new Error('SUTRA API key required');
     }
     
     const response = await fetch('https://api.two.ai/v2/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${key}`
       },
       body: JSON.stringify({
         model: 'sutra-v2',
@@ -41,7 +41,7 @@ async function generateSummary(query: string): Promise<string> {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { query, showToolCalls } = body;
+    const { query, showToolCalls, apiKey } = body;
     
     if (!query) {
       return NextResponse.json(
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       );
     }
     
-    const summary = await generateSummary(query);
+    const summary = await generateSummary(query, apiKey);
     
     return NextResponse.json({ response: summary });
   } catch (error: any) {

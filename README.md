@@ -6,6 +6,7 @@ A Next.js application that summarizes news articles in multiple languages using 
 
 - Multilingual news summarization in 50+ languages, with special support for 11+ Indian languages
 - SerpAPI integration for up-to-date news information
+- In-app API key management for TWO AI SUTRA and SerpAPI
 - Customizable settings for search and tool call visibility
 - Sample questions for easy testing
 - Category and language selection shortcuts
@@ -34,13 +35,15 @@ cd multilingual-news-summarizer
 npm install
 ```
 
-3. Set up environment variables:
+3. Set up environment variables (optional):
    - Create a `.env.local` file in the root directory
    - Add your API keys:
    ```
    SUTRA_API_KEY=your_sutra_api_key_here
    SERP_API_KEY=your_serpapi_key_here
    ```
+
+   Alternatively, you can add your API keys directly in the application's settings panel.
 
 4. Run the development server:
 
@@ -52,23 +55,38 @@ npm run dev
 
 ## Usage
 
-1. Type your news query in the text area or select a sample question
-2. Use the language badges to quickly create queries in specific languages
-3. Use the category badges to generate queries for specific news topics
-4. Optionally, configure search settings to control SerpAPI usage
-5. Click "Get Summary" to generate a news summary in your chosen language
+1. If you haven't set environment variables, add your API keys in the settings panel (gear icon)
+2. Type your news query in the text area or select a sample question
+3. Use the language badges to quickly create queries in specific languages
+4. Use the category badges to generate queries for specific news topics
+5. Optionally, configure search settings to control SerpAPI usage
+6. Click "Get Summary" to generate a news summary in your chosen language
+
+## API Key Management
+
+The application provides two ways to manage API keys:
+
+1. **Environment Variables**: Set `SUTRA_API_KEY` and `SERP_API_KEY` in your `.env.local` file.
+
+2. **In-App Settings**: Add your API keys directly in the application's settings panel:
+   - Click the gear icon in the header to open settings
+   - Enter your SUTRA API key from [TWO AI](https://www.two.ai/sutra/api)
+   - Enter your SerpAPI key from [SerpAPI](https://serpapi.com/)
+   - Keys are securely stored in your browser's localStorage
+
+The application will display indicators in the header showing which API keys are set.
 
 ## API Routes
 
 The application includes two main API routes:
 
 - `/api/search` - Queries SerpAPI for recent news information
-  - Accepts POST requests with a JSON body containing a `query` parameter
+  - Accepts POST requests with a JSON body containing `query` and optional `apiKey` parameters
   - Returns news articles with title, snippet, and source information
   - Falls back to organic search results if no news results are found
 
 - `/api/summarize` - Communicates with the SUTRA API to generate summaries
-  - Accepts POST requests with a JSON body containing a `query` parameter
+  - Accepts POST requests with a JSON body containing `query` and optional `apiKey` parameters
   - Uses TWO AI's SUTRA model (sutra-v2) to generate multilingual summaries
   - Returns the summary as plain text
 
